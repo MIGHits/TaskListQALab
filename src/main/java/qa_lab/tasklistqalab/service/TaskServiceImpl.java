@@ -1,12 +1,18 @@
 package qa_lab.tasklistqalab.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import qa_lab.tasklistqalab.dto.*;
 import qa_lab.tasklistqalab.entity.TaskEntity;
+import qa_lab.tasklistqalab.entity.enum_model.SortDirection;
+import qa_lab.tasklistqalab.entity.enum_model.SortField;
 import qa_lab.tasklistqalab.entity.enum_model.TaskStatus;
+import qa_lab.tasklistqalab.exception.NotFound;
 import qa_lab.tasklistqalab.mapper.TaskMapper;
 import qa_lab.tasklistqalab.repository.TaskRepository;
+import qa_lab.tasklistqalab.specification.TaskSpecification;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,17 +33,29 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public FullTaskModel getTaskById(UUID id) {
-        return taskMapper.toFullTask(taskRepository.findById(id).orElse(null));
+        return taskMapper.toFullTask(taskRepository.findById(id).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена")));
     }
 
     @Override
-    public List<ShortTaskModel> getAllTasks() {
-        return taskMapper.toShortTask(taskRepository.findAll());
+    public List<ShortTaskModel> getAllTasks(SortField sortField, TaskStatus status, SortDirection sortDirection) {
+        Specification<TaskEntity> spec = Specification.where(null);
+        if (status != null) {
+            spec = spec.and(TaskSpecification.filterByStatus(status));
+        }
+
+        if (sortField != null) {
+            switch (sortField) {
+                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
+                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
+            }
+        }
+
+        return taskMapper.toShortTask(taskRepository.findAll(spec));
     }
 
     @Override
     public ResponseModel editTask(EditTaskModel taskModel) {
-        taskRepository.findById(taskModel.getId()).orElseThrow();
+        taskRepository.findById(taskModel.getId()).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена"));
         taskRepository.save(taskMapper.fromEdit(taskModel));
         return ResponseModel.builder()
                 .status("success")
@@ -47,7 +65,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Void changeTaskStatus(UUID id) {
-        TaskEntity taskEntity = taskRepository.findById(id).orElseThrow();
+        TaskEntity taskEntity = taskRepository.findById(id).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена"));
 
         if (taskEntity.getStatus().equals(TaskStatus.COMPLETED)) {
             if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||

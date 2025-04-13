@@ -1,10 +1,14 @@
 package qa_lab.tasklistqalab.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import qa_lab.tasklistqalab.dto.*;
+import qa_lab.tasklistqalab.entity.enum_model.SortDirection;
+import qa_lab.tasklistqalab.entity.enum_model.SortField;
+import qa_lab.tasklistqalab.entity.enum_model.TaskStatus;
 import qa_lab.tasklistqalab.service.TaskService;
 
 import java.util.List;
@@ -22,7 +26,7 @@ public class TaskController {
 
 
     @PostMapping()
-    public ResponseEntity<UUID> createTask(@RequestBody TaskModel task) {
+    public ResponseEntity<UUID> createTask(@RequestBody  @Valid TaskModel task) {
         return ok(taskService.createTask(task));
     }
 
@@ -32,12 +36,16 @@ public class TaskController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<ShortTaskModel>> getAllTasks() {
-        return ok(taskService.getAllTasks());
+    public ResponseEntity<List<ShortTaskModel>> getAllTasks(
+            @RequestParam(required = false, defaultValue = "ASC") SortDirection sortDirection,
+            @RequestParam(required = false, defaultValue = "CREATION_DATE") SortField sortField,
+            @RequestParam(required = false) TaskStatus status)
+    {
+        return ok(taskService.getAllTasks(sortField, status, sortDirection));
     }
 
     @PutMapping()
-    public ResponseEntity<ResponseModel> updateTask(@RequestBody EditTaskModel task) {
+    public ResponseEntity<ResponseModel> updateTask(@RequestBody  @Valid EditTaskModel task) {
         return ok(taskService.editTask(task));
     }
 
