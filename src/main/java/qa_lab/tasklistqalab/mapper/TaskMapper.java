@@ -24,6 +24,7 @@ public interface TaskMapper {
 
     List<ShortTaskModel> toShortTask(List<TaskEntity> taskEntity);
 
+    @Mapping(target = "status", expression = "java(qa_lab.tasklistqalab.entity.enum_model.TaskStatus.ACTIVE)")
     TaskEntity fromEdit (EditTaskModel fullTaskModel);
 
     @AfterMapping

@@ -4,14 +4,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import qa_lab.tasklistqalab.dto.FullTaskModel;
-import qa_lab.tasklistqalab.dto.ResponseModel;
-import qa_lab.tasklistqalab.dto.ShortTaskModel;
-import qa_lab.tasklistqalab.dto.TaskModel;
+import qa_lab.tasklistqalab.dto.*;
 import qa_lab.tasklistqalab.service.TaskService;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.springframework.http.ResponseEntity.ok;
 
 @Tag(name = "Task")
 @RequiredArgsConstructor
@@ -24,21 +23,26 @@ public class TaskController {
 
     @PostMapping()
     public ResponseEntity<UUID> createTask(@RequestBody TaskModel task) {
-        return ResponseEntity.ok(taskService.createTask(task));
+        return ok(taskService.createTask(task));
     }
 
     @GetMapping("{id}")
     public ResponseEntity<FullTaskModel> getTaskById(@PathVariable UUID id) {
-        return ResponseEntity.ok(taskService.getTaskById(id));
+        return ok(taskService.getTaskById(id));
     }
 
     @GetMapping()
     public ResponseEntity<List<ShortTaskModel>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
+        return ok(taskService.getAllTasks());
     }
 
     @PutMapping()
-    public ResponseEntity<UUID> updateTask(@RequestBody TaskModel task) {
-        return ResponseEntity.ok()
+    public ResponseEntity<ResponseModel> updateTask(@RequestBody EditTaskModel task) {
+        return ok(taskService.editTask(task));
+    }
+
+    @PutMapping("{id}")
+    public Void changeTaskStatus(@PathVariable UUID id) {
+        return taskService.changeTaskStatus(id);
     }
 }
