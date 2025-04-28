@@ -15,7 +15,7 @@ public class SwaggerConfig {
         return new OpenAPI().servers(
                 List.of(new Server().url("http://localhost:8080"))
         ).info(
-                new Info().title("Schedule service API")
+                new Info().title("TaskApi")
         );
     }
 }

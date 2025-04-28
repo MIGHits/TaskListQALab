@@ -19,4 +19,6 @@ public interface TaskService {
     ResponseModel editTask(EditTaskModel taskModel);
 
     Void changeTaskStatus(UUID id);
+
+    ResponseModel deleteTask(UUID id);
 }

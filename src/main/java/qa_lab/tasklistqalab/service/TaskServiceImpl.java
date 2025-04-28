@@ -1,7 +1,6 @@
 package qa_lab.tasklistqalab.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import qa_lab.tasklistqalab.dto.*;
@@ -33,7 +32,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public FullTaskModel getTaskById(UUID id) {
-        return taskMapper.toFullTask(taskRepository.findById(id).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена")));
+        return taskMapper.toFullTask(taskRepository.findById(id).orElseThrow(() -> new NotFound("Задача с id: " + id + " не найдена")));
     }
 
     @Override
@@ -55,7 +54,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public ResponseModel editTask(EditTaskModel taskModel) {
-        taskRepository.findById(taskModel.getId()).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена"));
+        taskRepository.findById(taskModel.getId()).orElseThrow(() -> new NotFound("Задача с id: " + taskModel.getId() + " не найдена"));
         taskRepository.save(taskMapper.fromEdit(taskModel));
         return ResponseModel.builder()
                 .status("success")
@@ -65,7 +64,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Void changeTaskStatus(UUID id) {
-        TaskEntity taskEntity = taskRepository.findById(id).orElseThrow(()-> new NotFound("Задача с id:${id} не найдена"));
+        TaskEntity taskEntity = taskRepository.findById(id).orElseThrow(() -> new NotFound("Задача с id: " + id + " не найдена"));
 
         if (taskEntity.getStatus().equals(TaskStatus.COMPLETED)) {
             if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
@@ -75,7 +74,8 @@ public class TaskServiceImpl implements TaskService {
                 taskEntity.setStatus(TaskStatus.ACTIVE);
             }
         } else {
-            if (taskEntity.getDeadline().isBefore(LocalDate.now())) {
+            if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
+                    taskEntity.getDeadline().isEqual(LocalDate.now())) {
                 taskEntity.setStatus(TaskStatus.LATE);
             } else {
                 taskEntity.setStatus(TaskStatus.COMPLETED);
@@ -83,5 +83,13 @@ public class TaskServiceImpl implements TaskService {
         }
         taskRepository.save(taskEntity);
         return null;
+    }
+
+    @Override
+    public ResponseModel deleteTask(UUID id) {
+        TaskEntity task = taskRepository.findById(id).orElseThrow(() -> new NotFound("Задача с id: " + id + " не найдена"));
+        taskRepository.delete(task);
+        return ResponseModel.builder().message("Задача успешно удалена").status("success").build();
+
     }
 }
