@@ -65,19 +65,26 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public Void changeTaskStatus(UUID id) {
         TaskEntity taskEntity = taskRepository.findById(id).orElseThrow(() -> new NotFound("Задача с id: " + id + " не найдена"));
-
-        if (taskEntity.getStatus().equals(TaskStatus.COMPLETED) ||
-                taskEntity.getStatus().equals(TaskStatus.LATE)) {
-            if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
-                    taskEntity.getDeadline().isEqual(LocalDate.now())) {
-                taskEntity.setStatus(TaskStatus.OVERDUE);
+        if (taskEntity.getDeadline() != null) {
+            if (taskEntity.getStatus().equals(TaskStatus.COMPLETED) ||
+                    taskEntity.getStatus().equals(TaskStatus.LATE)) {
+                if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
+                        taskEntity.getDeadline().isEqual(LocalDate.now())) {
+                    taskEntity.setStatus(TaskStatus.OVERDUE);
+                } else {
+                    taskEntity.setStatus(TaskStatus.ACTIVE);
+                }
             } else {
-                taskEntity.setStatus(TaskStatus.ACTIVE);
+                if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
+                        taskEntity.getDeadline().isEqual(LocalDate.now())) {
+                    taskEntity.setStatus(TaskStatus.LATE);
+                } else {
+                    taskEntity.setStatus(TaskStatus.COMPLETED);
+                }
             }
         } else {
-            if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
-                    taskEntity.getDeadline().isEqual(LocalDate.now())) {
-                taskEntity.setStatus(TaskStatus.LATE);
+            if (taskEntity.getStatus().equals(TaskStatus.COMPLETED)) {
+                taskEntity.setStatus(TaskStatus.ACTIVE);
             } else {
                 taskEntity.setStatus(TaskStatus.COMPLETED);
             }
