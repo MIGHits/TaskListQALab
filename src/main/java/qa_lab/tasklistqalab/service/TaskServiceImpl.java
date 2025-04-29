@@ -66,7 +66,8 @@ public class TaskServiceImpl implements TaskService {
     public Void changeTaskStatus(UUID id) {
         TaskEntity taskEntity = taskRepository.findById(id).orElseThrow(() -> new NotFound("Задача с id: " + id + " не найдена"));
 
-        if (taskEntity.getStatus().equals(TaskStatus.COMPLETED)) {
+        if (taskEntity.getStatus().equals(TaskStatus.COMPLETED) ||
+                taskEntity.getStatus().equals(TaskStatus.LATE)) {
             if (taskEntity.getDeadline().isBefore(LocalDate.now()) ||
                     taskEntity.getDeadline().isEqual(LocalDate.now())) {
                 taskEntity.setStatus(TaskStatus.OVERDUE);

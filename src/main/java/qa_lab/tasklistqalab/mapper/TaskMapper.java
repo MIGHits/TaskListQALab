@@ -20,12 +20,13 @@ public interface TaskMapper {
     @Mapping(target = "status", expression = "java(qa_lab.tasklistqalab.entity.enum_model.TaskStatus.ACTIVE)")
     TaskEntity toEntity(TaskModel taskModel);
 
+    @Mapping(source = "creationDate", target = "createDate")
     FullTaskModel toFullTask(TaskEntity taskEntity);
 
     List<ShortTaskModel> toShortTask(List<TaskEntity> taskEntity);
 
     @Mapping(target = "status", expression = "java(qa_lab.tasklistqalab.entity.enum_model.TaskStatus.ACTIVE)")
-    TaskEntity fromEdit (EditTaskModel fullTaskModel);
+    TaskEntity fromEdit(EditTaskModel fullTaskModel);
 
     @AfterMapping
     default void processTaskNameAndPriority(
