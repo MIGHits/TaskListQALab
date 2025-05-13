@@ -16,6 +16,7 @@ import qa_lab.tasklistqalab.dto.*;
 import qa_lab.tasklistqalab.entity.enum_model.SortDirection;
 import qa_lab.tasklistqalab.entity.enum_model.SortField;
 import qa_lab.tasklistqalab.entity.enum_model.TaskPriority;
+import qa_lab.tasklistqalab.exception.BadRequest;
 import qa_lab.tasklistqalab.mapper.TaskMapper;
 import qa_lab.tasklistqalab.repository.TaskRepository;
 
@@ -116,7 +117,6 @@ class TaskServiceImplTest {
         assertThrows(NotFound.class, () -> taskService.getTaskById(taskId));
         verify(taskRepository).findById(taskId);
     }
-
 
     @ParameterizedTest
     @MethodSource("provideSortAndStatusParams")

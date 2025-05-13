@@ -8,6 +8,7 @@ import qa_lab.tasklistqalab.entity.TaskEntity;
 import qa_lab.tasklistqalab.entity.enum_model.SortDirection;
 import qa_lab.tasklistqalab.entity.enum_model.SortField;
 import qa_lab.tasklistqalab.entity.enum_model.TaskStatus;
+import qa_lab.tasklistqalab.exception.BadRequest;
 import qa_lab.tasklistqalab.exception.NotFound;
 import qa_lab.tasklistqalab.mapper.TaskMapper;
 import qa_lab.tasklistqalab.repository.TaskRepository;
@@ -26,6 +27,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public UUID createTask(TaskModel task) {
         TaskEntity taskEntity = taskMapper.toEntity(task);
+        if (taskEntity.getName().length() <= 3) throw new BadRequest("Минимальная длина наименования 4");
         taskRepository.save(taskEntity);
         return taskEntity.getId();
     }
