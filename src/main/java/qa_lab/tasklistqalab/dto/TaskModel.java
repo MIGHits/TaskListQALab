@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskModel {
-    @Size(min = 4, max = 100)
+    @Size(min = 4, max = 100,message = "размер должен находиться в диапазоне от 4 до 100")
     String name;
     @Nullable
     String description;

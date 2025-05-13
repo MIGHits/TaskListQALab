@@ -9,6 +9,8 @@ import qa_lab.tasklistqalab.dto.TaskModel;
 import qa_lab.tasklistqalab.entity.TaskEntity;
 import qa_lab.tasklistqalab.entity.enum_model.TaskPriority;
 import qa_lab.tasklistqalab.entity.enum_model.TaskStatus;
+import qa_lab.tasklistqalab.exception.BadRequest;
+import qa_lab.tasklistqalab.exception.NotFound;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -44,6 +46,17 @@ class TaskMapperTest {
         TaskEntity taskEntity = taskMapper.toEntity(taskModel);
 
         assertEquals(LocalDate.of(2025, 5, 1), taskEntity.getDeadline());
+    }
+
+    @Test
+    void toEntityWithGarbage() {
+        TaskModel taskModel = new TaskModel();
+        taskModel.setName("Task !before xx.05.2025");
+
+        TaskEntity taskEntity = taskMapper.toEntity(taskModel);
+
+        assertNull(taskEntity.getDeadline());
+        assertEquals("Task !before xx.05.2025", taskEntity.getName());
     }
 
     @Test
