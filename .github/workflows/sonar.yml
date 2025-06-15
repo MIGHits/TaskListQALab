@@ -38,7 +38,7 @@ jobs:
         run: |
           mvn clean verify
           mvn sonar:sonar \
-            -Dsonar.projectKey=MIGHits/TaskListQALab \
+            -Dsonar.projectKey=MIGHits_TaskListQALab \
             -Dsonar.projectName=TaskListQALab \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
