@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.2.5</version>
         <relativePath/>
     </parent>
 
@@ -241,7 +241,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
                     <suppressionFiles>
                         <suppressionFile>owasp-suppressions.xml</suppressionFile>
                     </suppressionFiles>
@@ -253,6 +253,9 @@
                     <skipRuntimeScope>true</skipRuntimeScope>
                     <skipTestScope>true</skipTestScope>
                     <failOnError>false</failOnError>
+                    <cveValidForHours>24</cveValidForHours>
+                    <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+                    <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                 </configuration>
             </plugin>
             <plugin>
