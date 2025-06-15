@@ -36,11 +36,17 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
         run: |
-          mvn clean verify sonar:sonar \
-            -Dsonar.projectKey=${{ github.repository }} \
-            -Dsonar.projectName=${{ github.repository }} \
+          mvn clean verify
+          mvn sonar:sonar \
+            -Dsonar.projectKey=MIGHits/TaskListQALab \
+            -Dsonar.projectName=TaskListQALab \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.branch.name=${{ github.ref_name }} \
-            -Dsonar.branch.target=master 
+            -Dsonar.branch.target=master \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java \
+            -Dsonar.java.source=21 \
+            -Dsonar.java.target=21 \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml 
