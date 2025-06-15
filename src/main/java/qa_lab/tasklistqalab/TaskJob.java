@@ -21,10 +21,11 @@ public class TaskJob {
     @Scheduled(cron = "0 */1 * * * *")
     public void taskJob() throws InterruptedException {
         taskRepository.findAll().forEach(task -> {
-            if (LocalDate.now().isEqual(task.getDeadline()) &&
-                    !List.of(TaskStatus.LATE, TaskStatus.COMPLETED).contains(task.getStatus())) {
+            if (task.getDeadline() != null && 
+                LocalDate.now().isEqual(task.getDeadline()) &&
+                !List.of(TaskStatus.LATE, TaskStatus.COMPLETED).contains(task.getStatus())) {
                 task.setStatus(TaskStatus.OVERDUE);
-            } else {
+            } else if (task.getStatus() != TaskStatus.COMPLETED) {
                 task.setStatus(TaskStatus.ACTIVE);
             }
             taskRepository.save(task);
