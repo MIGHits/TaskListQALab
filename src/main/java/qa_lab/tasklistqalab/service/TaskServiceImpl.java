@@ -30,20 +30,20 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public UUID createTask(TaskModel task) {
         logger.info("Creating new task with data: {}", task);
-        logger.debug("Full task details - Name: {}, Description: {}, Priority: {}, Deadline: {}", 
-            task.getName(), 
-            task.getDescription(), 
-            task.getPriority(), 
-            task.getDeadline());
-        
+        logger.info("Full task details - Name: {}, Description: {}, Priority: {}, Deadline: {}",
+                task.getName(),
+                task.getDescription(),
+                task.getPriority(),
+                task.getDeadline());
+
         TaskEntity taskEntity = taskMapper.toEntity(task);
         if (taskEntity.getName().length() <= 3) throw new BadRequest("Минимальная длина наименования 4");
         taskRepository.save(taskEntity);
-        
+
         logger.info("Task created successfully with ID: {}", taskEntity.getId());
         return taskEntity.getId();
     }
-    
+
 
     @Override
     public FullTaskModel getTaskById(UUID id) {
@@ -66,7 +66,6 @@ public class TaskServiceImpl implements TaskService {
 
         return taskMapper.toShortTask(taskRepository.findAll(spec));
     }
-
 
 
     @Override
