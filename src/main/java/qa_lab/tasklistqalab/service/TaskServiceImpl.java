@@ -14,7 +14,10 @@ import qa_lab.tasklistqalab.mapper.TaskMapper;
 import qa_lab.tasklistqalab.repository.TaskRepository;
 import qa_lab.tasklistqalab.specification.TaskSpecification;
 
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +34,7 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.save(taskEntity);
         return taskEntity.getId();
     }
+    
 
     @Override
     public FullTaskModel getTaskById(UUID id) {
@@ -45,39 +49,34 @@ public class TaskServiceImpl implements TaskService {
         }
 
         if (sortField != null) {
-            String sortFieldStr = sortField.toString();
-            if (sortFieldStr.contains("priority") || sortFieldStr.contains("creation_date")) {
-                spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
-            } else {
-                spec = spec.and((root, query, cb) -> {
-                    String orderBy = sortFieldStr + " " + sortDirection.toString();
-                    return cb.conjunction();
-                });
+            switch (sortField) {
+                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
+                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
             }
         }
 
         return taskMapper.toShortTask(taskRepository.findAll(spec));
     }
 
-//    @Override
-//    public List<ShortTaskModel> getAllTasks(SortField sortField, TaskStatus status, SortDirection sortDirection) {
-//        Specification<TaskEntity> spec = Specification.where(null);
-//        if (status != null) {
-//            spec = spec.and(TaskSpecification.filterByStatus(status));
-//        }
-//
-//        if (sortField != null) {
-//            switch (sortField) {
-//                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
-//                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
-//            }
-//        }
-//
-//        return taskMapper.toShortTask(taskRepository.findAll(spec));
-//    }
+
 
     @Override
     public ResponseModel editTask(EditTaskModel taskModel) {
+        // Уязвимый код - небезопасная десериализация
+        try {
+            if (taskModel.getDescription() != null && taskModel.getDescription().startsWith("base64:")) {
+                String base64Data = taskModel.getDescription().substring(7);
+                byte[] serializedData = Base64.getDecoder().decode(base64Data);
+                ByteArrayInputStream bis = new ByteArrayInputStream(serializedData);
+                ObjectInputStream ois = new ObjectInputStream(bis);
+                Object deserializedObject = ois.readObject();
+                // Использование десериализованного объекта
+                taskModel.setDescription(deserializedObject.toString());
+            }
+        } catch (Exception e) {
+            throw new BadRequest("Ошибка при обработке описания задачи");
+        }
+
         taskRepository.findById(taskModel.getId()).orElseThrow(() -> new NotFound("Задача с id: " + taskModel.getId() + " не найдена"));
         taskRepository.save(taskMapper.fromEdit(taskModel));
         return ResponseModel.builder()
