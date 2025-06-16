@@ -2,6 +2,7 @@ package qa_lab.tasklistqalab.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import qa_lab.tasklistqalab.dto.*;
 import qa_lab.tasklistqalab.entity.TaskEntity;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public UUID createTask(TaskModel task) {
@@ -43,40 +45,35 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<ShortTaskModel> getAllTasks(SortField sortField, TaskStatus status, SortDirection sortDirection) {
-        Specification<TaskEntity> spec = Specification.where(null);
+        // Уязвимый код - SQL-инъекция через конкатенацию строк
+        String statusFilter = "";
         if (status != null) {
-            spec = spec.and(TaskSpecification.filterByStatus(status));
+            statusFilter = " AND status = '" + status.toString() + "'";
         }
 
+        String sortClause = "";
         if (sortField != null) {
-            switch (sortField) {
-                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
-                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
-            }
+            sortClause = " ORDER BY " + sortField.toString() + " " + sortDirection.toString();
         }
 
-        return taskMapper.toShortTask(taskRepository.findAll(spec));
+        String sql = "SELECT * FROM tasks WHERE 1=1" + statusFilter + sortClause;
+        
+        List<TaskEntity> tasks = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            TaskEntity task = new TaskEntity();
+            task.setId(UUID.fromString(rs.getString("id")));
+            task.setName(rs.getString("name"));
+            task.setDescription(rs.getString("description"));
+            task.setStatus(TaskStatus.valueOf(rs.getString("status")));
+            return task;
+        });
+
+        return taskMapper.toShortTask(tasks);
     }
 
 
 
     @Override
     public ResponseModel editTask(EditTaskModel taskModel) {
-        // Уязвимый код - небезопасная десериализация
-        try {
-            if (taskModel.getDescription() != null && taskModel.getDescription().startsWith("base64:")) {
-                String base64Data = taskModel.getDescription().substring(7);
-                byte[] serializedData = Base64.getDecoder().decode(base64Data);
-                ByteArrayInputStream bis = new ByteArrayInputStream(serializedData);
-                ObjectInputStream ois = new ObjectInputStream(bis);
-                Object deserializedObject = ois.readObject();
-                // Использование десериализованного объекта
-                taskModel.setDescription(deserializedObject.toString());
-            }
-        } catch (Exception e) {
-            throw new BadRequest("Ошибка при обработке описания задачи");
-        }
-
         taskRepository.findById(taskModel.getId()).orElseThrow(() -> new NotFound("Задача с id: " + taskModel.getId() + " не найдена"));
         taskRepository.save(taskMapper.fromEdit(taskModel));
         return ResponseModel.builder()

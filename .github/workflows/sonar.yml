@@ -41,7 +41,7 @@ jobs:
             -Dsonar.projectKey=MIGHits_TaskListQALab \
             -Dsonar.projectName=TaskListQALab \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.branch.name=${{ github.ref_name }} \
             -Dsonar.sources=src/main/java \
