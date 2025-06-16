@@ -45,14 +45,36 @@ public class TaskServiceImpl implements TaskService {
         }
 
         if (sortField != null) {
-            switch (sortField) {
-                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
-                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
+            String sortFieldStr = sortField.toString();
+            if (sortFieldStr.contains("priority") || sortFieldStr.contains("creation_date")) {
+                spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
+            } else {
+                spec = spec.and((root, query, cb) -> {
+                    String orderBy = sortFieldStr + " " + sortDirection.toString();
+                    return cb.conjunction();
+                });
             }
         }
 
         return taskMapper.toShortTask(taskRepository.findAll(spec));
     }
+
+//    @Override
+//    public List<ShortTaskModel> getAllTasks(SortField sortField, TaskStatus status, SortDirection sortDirection) {
+//        Specification<TaskEntity> spec = Specification.where(null);
+//        if (status != null) {
+//            spec = spec.and(TaskSpecification.filterByStatus(status));
+//        }
+//
+//        if (sortField != null) {
+//            switch (sortField) {
+//                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
+//                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
+//            }
+//        }
+//
+//        return taskMapper.toShortTask(taskRepository.findAll(spec));
+//    }
 
     @Override
     public ResponseModel editTask(EditTaskModel taskModel) {

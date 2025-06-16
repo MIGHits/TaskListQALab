@@ -57,8 +57,4 @@ public class TaskController {
     public ResponseEntity<ResponseModel> deleteTask(@PathVariable UUID id) {
         return ok(taskService.deleteTask(id));
     }
-
-    @GetMapping("vulnerability/example/**")
-    public void getVulnerabilityExample() {
-    }
 }
