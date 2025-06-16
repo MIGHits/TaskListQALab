@@ -1,8 +1,9 @@
 package qa_lab.tasklistqalab.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import qa_lab.tasklistqalab.dto.*;
 import qa_lab.tasklistqalab.entity.TaskEntity;
@@ -15,10 +16,7 @@ import qa_lab.tasklistqalab.mapper.TaskMapper;
 import qa_lab.tasklistqalab.repository.TaskRepository;
 import qa_lab.tasklistqalab.specification.TaskSpecification;
 
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.time.LocalDate;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,13 +25,22 @@ import java.util.UUID;
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
-    private final JdbcTemplate jdbcTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     @Override
     public UUID createTask(TaskModel task) {
+        logger.info("Creating new task with data: {}", task);
+        logger.debug("Full task details - Name: {}, Description: {}, Priority: {}, Deadline: {}", 
+            task.getName(), 
+            task.getDescription(), 
+            task.getPriority(), 
+            task.getDeadline());
+        
         TaskEntity taskEntity = taskMapper.toEntity(task);
         if (taskEntity.getName().length() <= 3) throw new BadRequest("Минимальная длина наименования 4");
         taskRepository.save(taskEntity);
+        
+        logger.info("Task created successfully with ID: {}", taskEntity.getId());
         return taskEntity.getId();
     }
     
@@ -45,29 +52,19 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<ShortTaskModel> getAllTasks(SortField sortField, TaskStatus status, SortDirection sortDirection) {
-        // Уязвимый код - SQL-инъекция через конкатенацию строк
-        String statusFilter = "";
+        Specification<TaskEntity> spec = Specification.where(null);
         if (status != null) {
-            statusFilter = " AND status = '" + status.toString() + "'";
+            spec = spec.and(TaskSpecification.filterByStatus(status));
         }
 
-        String sortClause = "";
         if (sortField != null) {
-            sortClause = " ORDER BY " + sortField.toString() + " " + sortDirection.toString();
+            switch (sortField) {
+                case PRIORITY -> spec = spec.and(TaskSpecification.sortByPriority(sortDirection));
+                case CREATION_DATE -> spec = spec.and(TaskSpecification.sortByCreateTime(sortDirection));
+            }
         }
 
-        String sql = "SELECT * FROM tasks WHERE 1=1" + statusFilter + sortClause;
-        
-        List<TaskEntity> tasks = jdbcTemplate.query(sql, (rs, rowNum) -> {
-            TaskEntity task = new TaskEntity();
-            task.setId(UUID.fromString(rs.getString("id")));
-            task.setName(rs.getString("name"));
-            task.setDescription(rs.getString("description"));
-            task.setStatus(TaskStatus.valueOf(rs.getString("status")));
-            return task;
-        });
-
-        return taskMapper.toShortTask(tasks);
+        return taskMapper.toShortTask(taskRepository.findAll(spec));
     }
 
 
