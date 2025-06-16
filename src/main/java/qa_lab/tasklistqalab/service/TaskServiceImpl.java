@@ -1,8 +1,6 @@
 package qa_lab.tasklistqalab.service;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import qa_lab.tasklistqalab.dto.*;
@@ -25,22 +23,12 @@ import java.util.UUID;
 public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
-    private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     @Override
     public UUID createTask(TaskModel task) {
-        logger.info("Creating new task with data: {}", task);
-        logger.info("Full task details - Name: {}, Description: {}, Priority: {}, Deadline: {}",
-                task.getName(),
-                task.getDescription(),
-                task.getPriority(),
-                task.getDeadline());
-
         TaskEntity taskEntity = taskMapper.toEntity(task);
         if (taskEntity.getName().length() <= 3) throw new BadRequest("Минимальная длина наименования 4");
         taskRepository.save(taskEntity);
-
-        logger.info("Task created successfully with ID: {}", taskEntity.getId());
         return taskEntity.getId();
     }
 
